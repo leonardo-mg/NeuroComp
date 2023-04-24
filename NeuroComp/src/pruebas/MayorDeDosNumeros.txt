@@ -1,0 +1,19 @@
+principal{
+       entero a;
+       entero b;
+
+       imprimir : "Ingresa un numero: ";
+       leer : a;
+       imprimir : "Ingresa otro numero: ";
+       leer : b;
+
+       si(a > b){
+              imprimir : "El mayor es: " << a << "\n"; 		
+       }
+       si(a < b){
+              imprimir : "El mayor es: " << b << "\n";
+       }
+       si no{
+              imprimir : "Son iguales" << "\n";
+       }
+}

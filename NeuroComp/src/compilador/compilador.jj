@@ -1,0 +1,378 @@
+/* Opciones del parser */
+options {
+  LOOKAHEAD = 2;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = false;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+/* Ejecuta el codigo que se va a validar */
+PARSER_BEGIN(Compilador) 
+package compilador;
+import java.util.ArrayList;
+class Compilador{}
+PARSER_END(Compilador)
+
+/* Todo los tokens tienen acceso a todo lo declarado en esta seccion */
+TOKEN_MGR_DECLS : {
+    public static ArrayList<Token> tablaTokens = new ArrayList();
+}
+
+/* Contiene aquellos caracteres que seran ignorados */
+SKIP : 
+{
+    " "
+  | "\n"  
+  | "\t"
+  | "\r"
+  | "\f"
+}
+
+/* Sentencia hecha para indicar la forma de los comentarios */
+SPECIAL_TOKEN : 
+{
+   <COMENTARIO_LINEA: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")> {tablaTokens.add(matchedToken);}
+  | <COMENTARIO_MULTILINEA: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"> {tablaTokens.add(matchedToken);}
+}
+
+/* Palabras reservadas */
+TOKEN :
+{ 
+  <ENTERO: "entero"> {tablaTokens.add(matchedToken);}
+  |<DECIMAL: "decimal"> {tablaTokens.add(matchedToken);}
+  |<SI: "si"> {tablaTokens.add(matchedToken);}
+  |<SINO: "si no"> {tablaTokens.add(matchedToken);}
+  |<SELECTOR: "selector"> {tablaTokens.add(matchedToken);}
+  |<SELECCION: "seleccion"> {tablaTokens.add(matchedToken);}
+  |<AUTOMATICO: "automatico"> {tablaTokens.add(matchedToken);}
+  |<PARA: "para"> {tablaTokens.add(matchedToken);}
+  |<MIENTRAS: "mientras"> {tablaTokens.add(matchedToken);}
+  |<ROMPER: "romper"> {tablaTokens.add(matchedToken);}
+  |<LEER: "leer"> {tablaTokens.add(matchedToken);}
+  |<IMPRIMIR: "imprimir"> {tablaTokens.add(matchedToken);}
+  |<PRINCIPAL: "principal"> {tablaTokens.add(matchedToken);}
+}
+
+/* Tipos de datos */
+TOKEN : 
+{
+   < ENTEROS: ["0"-"9"] (["0"-"9"])* > {tablaTokens.add(matchedToken);}
+   |
+   < DECIMALES: (["0"-"9"])+ "." (["0"-"9"])* > {tablaTokens.add(matchedToken);}
+   |
+   < CADENA:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+   > {tablaTokens.add(matchedToken);}
+}
+
+/* Identificadores */
+TOKEN :
+{
+    <IDENTIFICADOR: <LETRA> (<LETRA> | <NUMERO>)*> {tablaTokens.add(matchedToken);}
+ |  <#LETRA: ["A"-"Z","_","a"-"z"]>
+ |  <#NUMERO: ["0"-"9"]>
+}
+
+/*Operadores*/
+TOKEN :
+{
+  <MAS: "+"> {tablaTokens.add(matchedToken);}
+  |<MENOS: "-"> {tablaTokens.add(matchedToken);}
+  |<MULTIPLICACION: "*"> {tablaTokens.add(matchedToken);}
+  |<DIVISION: "/"> {tablaTokens.add(matchedToken);}
+  |<MODULO: "%"> {tablaTokens.add(matchedToken);}
+  |<IGUAL: "="> {tablaTokens.add(matchedToken);}
+  |<IGUALQUE: "=="> {tablaTokens.add(matchedToken);}
+  |<DIFERENTEDE: "!="> {tablaTokens.add(matchedToken);}
+  |<MENORQUE: "<"> {tablaTokens.add(matchedToken);}
+  |<MAYORQUE: ">"> {tablaTokens.add(matchedToken);}
+  |<MENORIGUAL: "<="> {tablaTokens.add(matchedToken);}
+  |<MAYORIGUAL: ">="> {tablaTokens.add(matchedToken);}
+  |<O: "||"> {tablaTokens.add(matchedToken);}
+  |<Y: "&&"> {tablaTokens.add(matchedToken);}
+}
+
+/* SIGNOS */
+TOKEN : 
+{
+  <LLAVEA: "{"> {tablaTokens.add(matchedToken);}
+  |<LLAVEC: "}"> {tablaTokens.add(matchedToken);}
+  |<PARENTESISA: "("> {tablaTokens.add(matchedToken);}
+  |<PARENTESISC: ")"> {tablaTokens.add(matchedToken);}
+  |<PUNTOCOMA: ";"> {tablaTokens.add(matchedToken);}
+  |<DOSPUNTOS: ":"> {tablaTokens.add(matchedToken);}
+  |<CONCATENACION:"<<"> {tablaTokens.add(matchedToken);}
+}
+
+/* TOKEN ERROR*/
+TOKEN :
+{
+    <ERROR: ~[] >
+}
+
+/* Analizador Lexico-Sintactico */
+
+/* FUNCIONES BASE */
+
+/* Funcion que define los tipos de datos aceptados, solo enteros y decimales */
+void tipoDato():{}
+{
+        <ENTERO> | <DECIMAL>
+}
+
+/* Funcion que define los tipos de valores que se pueden asignar a una variable, 
+    solo enteros y decimales */
+void tipoValor():{}
+{
+        <ENTEROS> | <DECIMALES>
+}
+
+/* Funcion que define los tipos de operadores aritmeticos admitidos: +, -, *, / y % */
+void operadorAritmetico():{}
+{
+        <MAS> | <MENOS> | <MULTIPLICACION> | <DIVISION> | <MODULO>
+}
+
+/* Funcion que define los tipos de operadores relacionales admitidos: <, >, =, <=, >= y != */
+void operadorRelacional():{}
+{
+        <IGUALQUE> | <DIFERENTEDE> | <MENORQUE> | <MAYORQUE> | <MENORIGUAL> | <MAYORIGUAL>
+}
+
+/* Funcion que define los tipos de operadores logicos admitidos: && y || */
+void operadorLogico():{}
+{
+        <O> | <Y>
+}
+
+/* OPERACIONES */
+
+/* Funcion que define una una operacion aritmetica en una asginacion: 
+    x = y + 3 
+    a = 2 * 4 
+*/
+void operacionAritmetica():{}
+{
+        (operadorAritmetico() (<IDENTIFICADOR> | tipoValor()))*
+}
+
+/* Funcion que define una operacion relacional: 
+    a > 3
+    10 <= 20
+*/
+void operacionRelacional():{}
+{
+        (<IDENTIFICADOR> | tipoValor()) operadorRelacional() (<IDENTIFICADOR> | tipoValor())
+}
+
+/* Funcion que define una operacion logica
+    b > c && 45 == z || 4 != 3
+*/
+void operacionLogica():{}
+{
+        operacionRelacional() (operadorLogico() operacionRelacional())*
+}
+
+/* DECLARACION Y ASIGNACION DE VARIABLES */
+
+/* Funcion que define el como se declara una variable:
+    entero x;
+    decimal y = 2;
+    entero altura = alto;
+    entero v = a + b - c * d / e % f;
+*/
+void declaracionVariable():{}
+{
+        tipoDato() <IDENTIFICADOR> (<IGUAL> (<IDENTIFICADOR> | tipoValor()) operacionAritmetica())? <PUNTOCOMA>
+}
+
+/* Funcion que define el como se asigna el valor a una variable
+    y = 2;
+    altura = alto;
+    v = a + b - c * d / e % f;
+*/
+void asignacionVariable():{}
+{
+        <IDENTIFICADOR> <IGUAL> (tipoValor() | <IDENTIFICADOR>) operacionAritmetica() <PUNTOCOMA>
+}
+
+/* ENTRADA Y SALIDA */
+
+/* Funcion que define como se imprime un mensaje por pantalla:
+    imprimir : "Hola mundo";
+    imprimir : altura;
+    imprimir : "Mi edad es: " << edad;
+ */
+void imprimirMensaje():{}
+{
+        <IMPRIMIR> <DOSPUNTOS> (<CADENA> | <IDENTIFICADOR>) (<CONCATENACION> (<CADENA> | <IDENTIFICADOR>))*  <PUNTOCOMA>
+}
+
+/* Funcion que define como se lee un dato:
+    leer : x;
+ */
+void leerDato():{}
+{
+        (<LEER> <DOSPUNTOS> <IDENTIFICADOR> <PUNTOCOMA>)
+}
+
+/* ESTRUCTURAS CONDICIONALES */
+
+/* Funcion que define la estructura del condicional si:
+    si(x > 3){
+        y = 3;
+    }
+    si(a <= 10){
+        b = 0;
+    } si no {
+        b = 1;
+    }
+ */
+void sentenciaSi():{}
+{
+        <SI> <PARENTESISA> operacionLogica() <PARENTESISC> <LLAVEA> (codigo())* <LLAVEC> (sentenciaSiNo())?
+}
+
+/* Funcion que define la estructura de la sentencia si no: 
+    si no{
+        x = x + 1;
+    }
+ */
+void sentenciaSiNo():{}
+{
+        <SINO> <LLAVEA> (codigo())* <LLAVEC>
+}
+
+/* Funcion que define la estructura del condicional selector:
+    selector(opcion){
+        opcion 1:
+            x = 1;
+            romper;
+        opcion 2:
+            x = 2;
+        automatico:
+            x = 0;
+    } cath (TokenMgrError er){
+        errorLexico(er);
+        errores++;
+    }
+*/
+void sentenciaSelector():{}
+{
+        <SELECTOR> <PARENTESISA> <IDENTIFICADOR> <PARENTESISC> <LLAVEA> (sentenciaSeleccion())* (sentenciaAutomatico())? <LLAVEC>
+}
+
+/* Funcion que define la estructura de la sentencia seleccion:
+    seleccion 1 :
+        imprimir : "Hola";
+        romper;
+    seleccion 2 :
+        imprimir : "Mundo";
+*/
+void sentenciaSeleccion():{}
+{
+        <SELECCION> tipoValor() <DOSPUNTOS> (codigo())* (<ROMPER> <PUNTOCOMA>)?
+}
+
+/* Funcion de que define la estructura de la sentencia automatico:
+    automatico:
+        x = y + 5;
+        romper;
+*/
+void sentenciaAutomatico():{}
+{
+        <AUTOMATICO> <DOSPUNTOS> (codigo())* (<ROMPER> <PUNTOCOMA>)?
+}
+
+/* ESTRUCTURAS CICLICAS */
+
+/* Funcion que define al ciclo mientras:
+    mientras(x > b && y < a){
+        x = x - 5;
+        y = y + 5;
+    }
+*/
+void sentenciaMientras():{}
+{
+        <MIENTRAS> <PARENTESISA> operacionLogica() <PARENTESISC> <LLAVEA> (codigo())* <LLAVEC> 
+}
+
+/* Funcion que define la estructura del ciclo para:
+    para(entero i = 0; entero < 10; entero = entero + 1){
+        imprimir : "El numero es: " << i;
+    }
+*/
+void sentenciaPara():{}
+{
+        <PARA> <PARENTESISA> condicionalPara() <PARENTESISC> <LLAVEA> (codigo())* <LLAVEC>
+}
+
+/* Funcion que define la estructura del la condicion para el ciclo para:
+    entero x = 2; x <= 20; x = x + 1
+    y = 0.1; y < 1.0; y = y + 0.1 
+ */
+void condicionalPara():{}
+{
+        (<ENTERO> | <DECIMAL>)? <IDENTIFICADOR> <IGUAL> tipoValor() <PUNTOCOMA> 
+        <IDENTIFICADOR> operadorRelacional() (tipoValor() | <IDENTIFICADOR>) <PUNTOCOMA>
+        <IDENTIFICADOR> <IGUAL> (tipoValor() | <IDENTIFICADOR>) operacionAritmetica()
+}
+
+/* Funcion que define la estructura del metodo principal: 
+    principal{
+        entero a = 3;
+        entero b = 2;
+        entero suma = a + b;
+        imprimir : "La suma es: " << suma;
+    }
+ */
+void metodoPrincipal():{}
+{
+        <PRINCIPAL> <LLAVEA> (codigo())* <LLAVEC>
+}
+
+/* Funcion que manda a llamar a todas las estructuras que posee el lenguaje */
+void codigo():{}
+{
+        declaracionVariable()
+        |asignacionVariable()
+        |imprimirMensaje()
+        |leerDato()
+        |sentenciaSi()
+        |sentenciaSelector()
+        |sentenciaMientras()
+        |sentenciaPara()
+}
+
+/*
+void ():{}
+{
+    try{
+        
+    } catch (ParseException ex){
+        System.out.println("Error en ")
+    }
+}
+*/

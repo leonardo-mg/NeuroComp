@@ -1,0 +1,12 @@
+principal{
+       entero numero;
+       imprimir :  "Ingresa un numero: ";
+       leer : numero;
+
+       entero residuo = numero % 2;
+       si(residuo == 0){
+              imprimir : "El numero es par\n";
+       } si no{
+              imprimir : "El numero es impar\n";
+       }
+}

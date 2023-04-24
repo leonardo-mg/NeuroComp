@@ -1,0 +1,3 @@
+principal{
+       imprimir : "Hola Mundo\n";
+}

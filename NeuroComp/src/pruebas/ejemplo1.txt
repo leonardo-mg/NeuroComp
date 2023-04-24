@@ -1,0 +1,28 @@
+principal{
+       
+       entero opcion;
+       imprimir : "Elige una opción: \n1.Hola\n2.Adios\n3.Jujis\n4.Salir\n";
+       leer : opcion;
+       selector(opcion){
+       seleccion 1: {
+              imprimir : "Hola";
+              romper;
+       }
+       seleccion 2: {
+              imprimir : "Adios";
+              romper;
+       }
+       seleccion 3:{
+              imprimir : "Jujis";
+       }
+       seleccion 4: {
+              imprimir : "saliendo";
+              romper;
+       }
+       automatico : {
+              imprimir : "Elija una opcion correcta";
+       }
+       }
+
+
+}

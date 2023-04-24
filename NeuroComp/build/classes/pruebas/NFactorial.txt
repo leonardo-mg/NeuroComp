@@ -1,0 +1,12 @@
+principal{
+       entero numero;
+       imprimir : "De que numero quieres obtener el factorial: ";
+       leer : numero;
+
+       entero factorial = 1;
+
+       para(entero i = 1; i <= numero; i = i + 1){
+              factorial = factorial * i;
+       }  
+       imprimir : "El factorial es: " << factorial << "\n";
+}
